@@ -33,9 +33,29 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
      */
     private final int MODE_RECORD = 2;
 
-    private Camera mCamera;
-    private SurfaceHolder mSurfaceHolder;
+    /**
+     * 状态：空闲
+     */
+    private final int STATE_IDLE = 0;
+
+    /**
+     * 状态：正在录制
+     */
+    private final int STATE_RECORDING = 1;
+
+    /**
+     * 状态：出错
+     */
+    private final int STATE_ERROR = 2;
+
     private Context mContext;
+
+    /**
+     * 相机
+     */
+    private Camera mCamera;
+
+    private SurfaceHolder mSurfaceHolder;
     private int cameraId = 0;
 
     /**
@@ -53,6 +73,12 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
      * 视频文件输出路径
      */
     private String mVideoOutputPath;
+
+    /**
+     * 状态
+     * {@link #STATE_IDLE}、{@link #STATE_RECORDING}
+     */
+    private int mState = STATE_IDLE;
 
     public CameraSurfaceView(Context context) {
         this(context, null);
@@ -131,9 +157,6 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
         final Camera.Parameters parameters = mCamera.getParameters();
 
         parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
-        parameters.setPictureSize(720, 1280);
-        parameters.setJpegQuality(100);
-        parameters.setJpegThumbnailSize(300, 300);
     }
 
     @Override
@@ -210,9 +233,10 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 
     /**
      * 设置相机方向
+     *
      * @param activity 活动
      * @param cameraId 相机id
-     * @param camera 相机
+     * @param camera   相机
      */
     public static void setCameraDisplayOrientation(Activity activity, int cameraId, android.hardware.Camera camera) {
 
@@ -229,7 +253,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
         int rotation = activity.getWindowManager().getDefaultDisplay()
                 .getRotation();
 
-        AppLogger.i("rotation="+rotation);
+        AppLogger.i("rotation=" + rotation);
 
         int degrees = 0;
 
@@ -262,7 +286,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
             result = (info.orientation - degrees + 360) % 360;
         }
 
-        AppLogger.i("result="+result);
+        AppLogger.i("result=" + result);
 
         camera.setDisplayOrientation(result);
     }
@@ -302,16 +326,24 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
     /**
      * 初始化MediaRecorder
      */
-    private void initMediaRecorder() {
+    public void initMediaRecorder() {
+
+        if (this.mMode != MODE_RECORD) {
+            return;
+        }
 
         if (mMediaRecorder == null) {
             mMediaRecorder = new MediaRecorder();
 
+            mMediaRecorder.setCamera(mCamera);
             mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
             mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+            mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
+            mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
             mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
 
             mVideoOutputPath = Utils.getVideoPath();
+
 
             mMediaRecorder.setOutputFile(mVideoOutputPath);
 
@@ -322,14 +354,63 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
             }
         }
 
+
+        mMediaRecorder.start();
+
+        mState = STATE_RECORDING;
+
+    }
+
+    /**
+     * 初始化MediaRecorder
+     */
+    public void stopRecord() {
+
+        if (mMediaRecorder != null) {
+            mMediaRecorder.stop();
+            mMediaRecorder.release();
+        }
     }
 
     /**
      * 获取视频输出路径
+     *
      * @return 输出路径
      */
     public String getVideoOutputPath() {
         return mVideoOutputPath;
+    }
+
+    /**
+     * 设置模式
+     *
+     * @param mMode 模式
+     */
+    private void setMode(int mMode) {
+        this.mMode = mMode;
+    }
+
+    /**
+     * 拍摄模式
+     */
+    public void setCaptureMode() {
+        setMode(MODE_CAPTURE);
+    }
+
+    /**
+     * 录制模式
+     */
+    public void setRecordMode() {
+        setMode(MODE_RECORD);
+    }
+
+    /**
+     * 是否是正在录制
+     * @return true 是、false 否
+     */
+    public boolean isRecording() {
+
+        return mMode == MODE_RECORD && mState == STATE_RECORDING;
     }
 
     /**
@@ -344,12 +425,14 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 
         /**
          * 拍照返回
+         *
          * @param data 数据
          */
         void onPictureTaken(byte[] data);
 
         /**
          * 拍照缩略图返回
+         *
          * @param data 数据
          */
         void onThumbTaken(byte[] data);

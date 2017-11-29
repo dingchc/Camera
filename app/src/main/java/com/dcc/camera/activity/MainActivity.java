@@ -9,10 +9,14 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
 
 import com.dcc.camera.R;
+import com.dcc.camera.util.Constant;
 
 public class MainActivity extends AppCompatActivity {
+
+    private Button mBtnCameraCapture, mBtnCameraRecord;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,6 +25,40 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+
+
+        mBtnCameraCapture = findViewById(R.id.btn_camera_capture);
+        mBtnCameraRecord = findViewById(R.id.btn_camera_record);
+
+        initEvent();
+    }
+
+    /**
+     * 初始化事件
+     */
+    private void initEvent() {
+
+        mBtnCameraCapture.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                Intent intent = new Intent(MainActivity.this, PreviewActivity.class);
+                intent.putExtra(Constant.KEY_OPERATE, Constant.KEY_OPERATE_CAPTURE);
+                startActivity(intent);
+            }
+        });
+
+        mBtnCameraRecord.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                Intent intent = new Intent(MainActivity.this, PreviewActivity.class);
+                intent.putExtra(Constant.KEY_OPERATE, Constant.KEY_OPERATE_RECORD);
+                startActivity(intent);
+
+            }
+        });
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -28,7 +66,6 @@ public class MainActivity extends AppCompatActivity {
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
 
-                startActivity(new Intent(MainActivity.this, PreviewActivity.class));
             }
         });
     }

@@ -3,12 +3,16 @@ package com.dcc.camera.widget;
 import android.app.Activity;
 import android.content.Context;
 import android.hardware.Camera;
+import android.media.MediaRecorder;
 import android.util.AttributeSet;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import com.dcc.camera.util.AppLogger;
+import com.dcc.camera.util.Utils;
+
+import java.io.IOException;
 
 /**
  * 相机View
@@ -16,12 +20,39 @@ import com.dcc.camera.util.AppLogger;
  * @author ding
  *         Created by ding on 29/11/2017.
  */
+
 public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Callback {
+
+    /**
+     * 拍照
+     */
+    private final int MODE_CAPTURE = 1;
+
+    /**
+     * 录像
+     */
+    private final int MODE_RECORD = 2;
 
     private Camera mCamera;
     private SurfaceHolder mSurfaceHolder;
     private Context mContext;
     private int cameraId = 0;
+
+    /**
+     * 预览模式
+     * {@link #MODE_CAPTURE}、{@link #MODE_RECORD}
+     */
+    private int mMode = MODE_CAPTURE;
+
+    /**
+     * 录像
+     */
+    private MediaRecorder mMediaRecorder;
+
+    /**
+     * 视频文件输出路径
+     */
+    private String mVideoOutputPath;
 
     public CameraSurfaceView(Context context) {
         this(context, null);
@@ -100,6 +131,9 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
         final Camera.Parameters parameters = mCamera.getParameters();
 
         parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+        parameters.setPictureSize(720, 1280);
+        parameters.setJpegQuality(100);
+        parameters.setJpegThumbnailSize(300, 300);
     }
 
     @Override
@@ -247,15 +281,55 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
                         listener.onShutter();
                     }
                 }
-            }, null, new Camera.PictureCallback() {
+            }, new Camera.PictureCallback() {
                 @Override
                 public void onPictureTaken(byte[] data, Camera camera) {
                     if (listener != null) {
                         listener.onPictureTaken(data);
                     }
                 }
+            }, new Camera.PictureCallback() {
+                @Override
+                public void onPictureTaken(byte[] data, Camera camera) {
+                    if (listener != null) {
+                        listener.onThumbTaken(data);
+                    }
+                }
             });
         }
+    }
+
+    /**
+     * 初始化MediaRecorder
+     */
+    private void initMediaRecorder() {
+
+        if (mMediaRecorder == null) {
+            mMediaRecorder = new MediaRecorder();
+
+            mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+            mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+            mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+
+            mVideoOutputPath = Utils.getVideoPath();
+
+            mMediaRecorder.setOutputFile(mVideoOutputPath);
+
+            try {
+                mMediaRecorder.prepare();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
+
+    /**
+     * 获取视频输出路径
+     * @return 输出路径
+     */
+    public String getVideoOutputPath() {
+        return mVideoOutputPath;
     }
 
     /**
@@ -273,6 +347,12 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
          * @param data 数据
          */
         void onPictureTaken(byte[] data);
+
+        /**
+         * 拍照缩略图返回
+         * @param data 数据
+         */
+        void onThumbTaken(byte[] data);
 
     }
 }

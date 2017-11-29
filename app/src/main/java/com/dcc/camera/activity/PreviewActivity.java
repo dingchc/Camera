@@ -52,9 +52,16 @@ public class PreviewActivity extends AppCompatActivity {
                         }
 
                         @Override
+                        public void onThumbTaken(byte[] data) {
+                            AppLogger.i("onThumbTaken ... ");
+                            Utils.printPictureDimens(data);
+                        }
+
+                        @Override
                         public void onPictureTaken(byte[] data) {
                             AppLogger.i("onPictureTaken ... ");
 
+                            Utils.printPictureDimens(data);
                             Utils.writeFile(data);
                         }
                     });

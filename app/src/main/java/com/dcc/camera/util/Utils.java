@@ -26,7 +26,7 @@ public class Utils {
             AppLogger.e("data array is null");
             return;
         }
-        String filePath = Environment.getExternalStorageDirectory() + File.separator + System.currentTimeMillis() + ".jpg";
+        String filePath = getPicturePath();
         File file = new File(filePath);
 
         FileOutputStream fos = null;
@@ -67,5 +67,38 @@ public class Utils {
 
             bitmap.recycle();
         }
+    }
+
+    /**
+     * 获取文件输出路径
+     * @param type 类型
+     * @return 路径
+     */
+    private static String getOutputFilePath(int type) {
+        String filePath = "";
+
+        if (type == 1) {
+            filePath = Environment.getExternalStorageDirectory() + File.separator + System.currentTimeMillis() + ".jpg";
+        } else if (type == 2) {
+            filePath = Environment.getExternalStorageDirectory() + File.separator + System.currentTimeMillis() + ".mp4";
+        }
+
+        return filePath;
+    }
+
+    /**
+     * 获取图片文件输出路径
+     * @return 路径
+     */
+    public static String getPicturePath() {
+        return getOutputFilePath(1);
+    }
+
+    /**
+     * 获取视频文件输出路径
+     * @return 路径
+     */
+    public static String getVideoPath() {
+        return getOutputFilePath(2);
     }
 }

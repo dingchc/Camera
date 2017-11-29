@@ -1,4 +1,4 @@
-package com.dcc.camera;
+package com.dcc.camera.util;
 
 
 public class AppLogger {

@@ -1,4 +1,4 @@
-package com.dcc.camera;
+package com.dcc.camera.widget;
 
 import android.app.Activity;
 import android.content.Context;
@@ -8,7 +8,7 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-import java.io.IOException;
+import com.dcc.camera.util.AppLogger;
 
 /**
  * 相机View
@@ -261,7 +261,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
     /**
      * 回调
      */
-    static interface CaptureListener {
+    public interface CaptureListener {
 
         /**
          * 咔嚓

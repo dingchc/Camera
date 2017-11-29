@@ -1,12 +1,15 @@
-package com.dcc.camera;
+package com.dcc.camera.activity;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
+
+import com.dcc.camera.util.AppLogger;
+import com.dcc.camera.widget.CameraSurfaceView;
+import com.dcc.camera.R;
+import com.dcc.camera.util.Utils;
 
 /**
  * @author ding

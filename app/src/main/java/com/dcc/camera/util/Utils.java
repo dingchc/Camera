@@ -1,11 +1,12 @@
-package com.dcc.camera;
+package com.dcc.camera.util;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Environment;
 
+import com.dcc.camera.util.AppLogger;
+
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 
 /**

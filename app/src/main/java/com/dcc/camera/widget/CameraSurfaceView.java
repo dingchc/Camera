@@ -12,7 +12,7 @@ import android.view.SurfaceView;
 import com.dcc.camera.util.AppLogger;
 import com.dcc.camera.util.Utils;
 
-import java.io.IOException;
+import java.util.List;
 
 /**
  * 相机View
@@ -22,6 +22,16 @@ import java.io.IOException;
  */
 
 public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Callback {
+
+    /**
+     * 默认的预览宽
+     */
+    private final int DEFAULT_PREVIEW_WIDTH = 480;
+
+    /**
+     * 默认的预览高
+     */
+    private final int DEFAULT_PREVIEW_HEIGHT = 640;
 
     /**
      * 拍照
@@ -73,6 +83,12 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
      * 视频文件输出路径
      */
     private String mVideoOutputPath;
+
+    /**
+     * 相册旋转角度
+     */
+    private int mCameraOrientation = 0;
+
 
     /**
      * 状态
@@ -156,13 +172,98 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 
         final Camera.Parameters parameters = mCamera.getParameters();
 
+        parameters.set("orientation", "portrait");
         parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+
+        Camera.Size sizeInfo = getOptimalSize(DEFAULT_PREVIEW_WIDTH, DEFAULT_PREVIEW_HEIGHT);
+
+        if (sizeInfo != null) {
+            AppLogger.i("sizeInfo.width=" + sizeInfo.width + ", sizeInfo.height=" + sizeInfo.height);
+            parameters.setPreviewSize(sizeInfo.width, sizeInfo.height);
+        }
+
+    }
+
+    /**
+     * 设置Surface预览的宽高
+     */
+    private void setSurfaceViewDimen() {
+
+        int width = getWidth();
+        int height = getHeight();
+
+        float rate = (DEFAULT_PREVIEW_WIDTH * 1.0f) / (DEFAULT_PREVIEW_HEIGHT * 1.0f);
+
+        if (height > width) {
+            height = (int) (width/ rate);
+        } else {
+            width = (int) (height / rate);
+        }
+
+        this.getLayoutParams().width = width;
+        this.getLayoutParams().height = height;
+
+        AppLogger.i("width="+width+", height="+height);
+    }
+
+    /**
+     * 计算最佳预览尺寸
+     * @param w 宽
+     * @param h 高
+     * @return size
+     */
+    public Camera.Size getOptimalSize(int w, int h) {
+
+        List<Camera.Size> sizeList = mCamera.getParameters().getSupportedPreviewSizes();
+
+        final double ASPECT_TOLERANCE = 0.1;
+        double targetRatio = (double) w / h;
+
+        if (sizeList == null) {
+            return null;
+        }
+
+        Camera.Size optimalSize = null;
+
+        double minDiff = Double.MAX_VALUE;
+
+        int targetHeight = h;
+
+        for (Camera.Size size : sizeList) {
+
+            if (size.width == w && size.height == h) {
+                return size;
+            }
+
+            double ratio = (double) size.width / size.height;
+            if (Math.abs(ratio - targetRatio) > ASPECT_TOLERANCE)
+                continue;
+            if (Math.abs(size.height - targetHeight) < minDiff) {
+                optimalSize = size;
+                minDiff = Math.abs(size.height - targetHeight);
+            }
+        }
+
+        // Cannot find preview size that matches the aspect ratio, ignore the requirement
+        if (optimalSize == null) {
+            minDiff = Double.MAX_VALUE;
+            for (Camera.Size size : sizeList) {
+                if (Math.abs(size.height - targetHeight) < minDiff) {
+                    optimalSize = size;
+                    minDiff = Math.abs(size.height - targetHeight);
+                }
+            }
+        }
+        return optimalSize;
     }
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
 
         AppLogger.i("surfaceCreated");
+
+        // 设置Surface预览的宽高
+        setSurfaceViewDimen();
 
         startPreview();
     }
@@ -238,7 +339,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
      * @param cameraId 相机id
      * @param camera   相机
      */
-    public static void setCameraDisplayOrientation(Activity activity, int cameraId, android.hardware.Camera camera) {
+    public void setCameraDisplayOrientation(Activity activity, int cameraId, android.hardware.Camera camera) {
 
         if (camera == null) {
             AppLogger.i("camera is not initialize");
@@ -288,7 +389,11 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 
         AppLogger.i("result=" + result);
 
+        mCameraOrientation = result;
+
         camera.setDisplayOrientation(result);
+
+
     }
 
     /**
@@ -328,37 +433,61 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
      */
     public void initMediaRecorder() {
 
-        if (this.mMode != MODE_RECORD) {
+        if (this.mMode != MODE_RECORD && mCamera == null) {
             return;
         }
 
         if (mMediaRecorder == null) {
+
             mMediaRecorder = new MediaRecorder();
 
+            mCamera.unlock();
+
             mMediaRecorder.setCamera(mCamera);
-            mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-            mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+
+//            getSupportSize();
+
+            mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
             mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
+
+            mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+
+            mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
             mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
-            mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
 
             mVideoOutputPath = Utils.getVideoPath();
 
+            mMediaRecorder.setOrientationHint(mCameraOrientation);
 
             mMediaRecorder.setOutputFile(mVideoOutputPath);
 
+            mMediaRecorder.setVideoFrameRate(30);
+            mMediaRecorder.setVideoEncodingBitRate(DEFAULT_PREVIEW_WIDTH * DEFAULT_PREVIEW_HEIGHT * 2);
+            mMediaRecorder.setVideoSize(DEFAULT_PREVIEW_WIDTH, DEFAULT_PREVIEW_HEIGHT);
+
+            mMediaRecorder.setPreviewDisplay(mSurfaceHolder.getSurface());
+
             try {
                 mMediaRecorder.prepare();
+
+                mMediaRecorder.start();
+                mState = STATE_RECORDING;
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
+    }
 
+    private void getSupportSize() {
 
-        mMediaRecorder.start();
+        if (mCamera != null) {
+            List<Camera.Size> sizeList = mCamera.getParameters().getSupportedPreviewSizes();
+            for (Camera.Size size : sizeList) {
+                AppLogger.i("width=" + size.width + ", height=" + size.height);
+            }
 
-        mState = STATE_RECORDING;
-
+        }
     }
 
     /**
@@ -406,6 +535,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 
     /**
      * 是否是正在录制
+     *
      * @return true 是、false 否
      */
     public boolean isRecording() {

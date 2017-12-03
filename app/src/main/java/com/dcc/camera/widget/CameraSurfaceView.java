@@ -3,6 +3,7 @@ package com.dcc.camera.widget;
 import android.app.Activity;
 import android.content.Context;
 import android.hardware.Camera;
+import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.util.AttributeSet;
 import android.view.Surface;
@@ -26,12 +27,12 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
     /**
      * 默认的预览宽
      */
-    private final int DEFAULT_PREVIEW_WIDTH = 480;
+    private final int DEFAULT_PREVIEW_WIDTH = 640;
 
     /**
      * 默认的预览高
      */
-    private final int DEFAULT_PREVIEW_HEIGHT = 640;
+    private final int DEFAULT_PREVIEW_HEIGHT = 480;
 
     /**
      * 拍照
@@ -146,6 +147,8 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
         // 设置相机方向
         setCameraDisplayOrientation((Activity) mContext, cameraId, mCamera);
 
+
+
     }
 
     /**
@@ -175,7 +178,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
         parameters.set("orientation", "portrait");
         parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
 
-        Camera.Size sizeInfo = getOptimalSize(DEFAULT_PREVIEW_WIDTH, DEFAULT_PREVIEW_HEIGHT);
+        Camera.Size sizeInfo = getOptimalSize(Math.max(DEFAULT_PREVIEW_WIDTH, DEFAULT_PREVIEW_HEIGHT), Math.min(DEFAULT_PREVIEW_WIDTH, DEFAULT_PREVIEW_HEIGHT));
 
         if (sizeInfo != null) {
             AppLogger.i("sizeInfo.width=" + sizeInfo.width + ", sizeInfo.height=" + sizeInfo.height);
@@ -195,7 +198,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
         float rate = (DEFAULT_PREVIEW_WIDTH * 1.0f) / (DEFAULT_PREVIEW_HEIGHT * 1.0f);
 
         if (height > width) {
-            height = (int) (width/ rate);
+            height = (int) (width * rate);
         } else {
             width = (int) (height / rate);
         }
@@ -231,6 +234,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 
         for (Camera.Size size : sizeList) {
 
+            AppLogger.i("size.width=" + size.width + ",, size.height=" + size.height);
             if (size.width == w && size.height == h) {
                 return size;
             }
@@ -441,17 +445,19 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 
             mMediaRecorder = new MediaRecorder();
 
+            mCamera.stopPreview();
+
             mCamera.unlock();
 
             mMediaRecorder.setCamera(mCamera);
 
 //            getSupportSize();
 
+            // set source
             mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
             mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
 
             mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-
             mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
             mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
 
@@ -459,6 +465,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 
             mMediaRecorder.setOrientationHint(mCameraOrientation);
 
+            AppLogger.i("mVideoOutputPath="+mVideoOutputPath);
             mMediaRecorder.setOutputFile(mVideoOutputPath);
 
             mMediaRecorder.setVideoFrameRate(30);

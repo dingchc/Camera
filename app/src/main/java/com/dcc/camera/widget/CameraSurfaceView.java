@@ -113,7 +113,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 
         this.mContext = context;
 
-        initCamera();
+//        initCamera();
 
         mSurfaceHolder = this.getHolder();
 
@@ -146,8 +146,6 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 
         // 配置相机
         configCamera();
-
-        mCamera.cancelAutoFocus();
 
         // 设置相机方向
         setCameraDisplayOrientation((Activity) mContext, cameraId, mCamera);
@@ -196,6 +194,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
             parameters.setPreviewSize(sizeInfo.width, sizeInfo.height);
         }
 
+        mCamera.setParameters(parameters);
     }
 
     /**
@@ -283,7 +282,11 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
         // 设置Surface预览的宽高
         setSurfaceViewDimen();
 
+        initCamera();
+
         startPreview();
+
+        mCamera.cancelAutoFocus();
     }
 
     @Override

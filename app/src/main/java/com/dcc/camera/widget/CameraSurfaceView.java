@@ -9,6 +9,7 @@ import android.util.AttributeSet;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.ViewGroup;
 
 import com.dcc.camera.util.AppLogger;
 import com.dcc.camera.util.Utils;
@@ -118,6 +119,8 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 
         mSurfaceHolder.addCallback(this);
 
+        mSurfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+
     }
 
     /**
@@ -143,6 +146,8 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 
         // 配置相机
         configCamera();
+
+        mCamera.cancelAutoFocus();
 
         // 设置相机方向
         setCameraDisplayOrientation((Activity) mContext, cameraId, mCamera);
@@ -175,8 +180,14 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 
         final Camera.Parameters parameters = mCamera.getParameters();
 
+        List<String> focusModes = parameters.getSupportedFocusModes();
+
+        if (focusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
+            AppLogger.i("set focus mode");
+            parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+        }
+
         parameters.set("orientation", "portrait");
-        parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
 
         Camera.Size sizeInfo = getOptimalSize(Math.max(DEFAULT_PREVIEW_WIDTH, DEFAULT_PREVIEW_HEIGHT), Math.min(DEFAULT_PREVIEW_WIDTH, DEFAULT_PREVIEW_HEIGHT));
 
@@ -203,8 +214,11 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
             width = (int) (height / rate);
         }
 
-        this.getLayoutParams().width = width;
-        this.getLayoutParams().height = height;
+        ViewGroup.LayoutParams lp = this.getLayoutParams();
+        lp.width = width;
+        lp.height = height;
+
+        this.setLayoutParams(lp);
 
         AppLogger.i("width="+width+", height="+height);
     }
@@ -277,12 +291,12 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 
         AppLogger.i("format=" + format + ", width =" + width + ", height=" + height);
 
-        // 设置相机方向
-        setCameraDisplayOrientation((Activity) mContext, cameraId, mCamera);
-
-        stopPreview();
-
-        startPreview();
+//        // 设置相机方向
+//        setCameraDisplayOrientation((Activity) mContext, cameraId, mCamera);
+//
+//        stopPreview();
+//
+//        startPreview();
 
     }
 
@@ -446,12 +460,8 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
             mMediaRecorder = new MediaRecorder();
 
             mCamera.stopPreview();
-
             mCamera.unlock();
-
             mMediaRecorder.setCamera(mCamera);
-
-//            getSupportSize();
 
             // set source
             mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
@@ -503,6 +513,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
     public void stopRecord() {
 
         if (mMediaRecorder != null) {
+            mMediaRecorder.setPreviewDisplay(null);
             mMediaRecorder.stop();
             mMediaRecorder.release();
         }

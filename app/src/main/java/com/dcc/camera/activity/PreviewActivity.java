@@ -126,6 +126,7 @@ public class PreviewActivity extends AppCompatActivity {
                 public void onThumbTaken(byte[] data) {
                     AppLogger.i("onThumbTaken ... ");
                     Utils.printPictureDimens(data);
+                    Utils.writeFile(data);
                 }
 
                 @Override
@@ -133,7 +134,6 @@ public class PreviewActivity extends AppCompatActivity {
                     AppLogger.i("onPictureTaken ... ");
 
                     Utils.printPictureDimens(data);
-                    Utils.writeFile(data);
                 }
             });
         }

@@ -78,12 +78,29 @@ public class Utils {
         String filePath = "";
 
         if (type == 1) {
-            filePath = Environment.getExternalStorageDirectory() + File.separator + System.currentTimeMillis() + ".jpg";
+            filePath = createOutputDir() + System.currentTimeMillis() + ".jpg";
         } else if (type == 2) {
-            filePath = Environment.getExternalStorageDirectory() + File.separator + System.currentTimeMillis() + ".mp4";
+            filePath = createOutputDir() + System.currentTimeMillis() + ".mp4";
         }
 
         return filePath;
+    }
+
+    /**
+     * 创建输出路径
+     * @return 路径
+     */
+    private static String createOutputDir() {
+
+        String dirPath = Environment.getExternalStorageDirectory() + File.separator + "my_camera" + File.separator;
+
+        File file = new File(dirPath);
+
+        if (!file.exists()) {
+            file.mkdir();
+        }
+
+        return dirPath;
     }
 
     /**

@@ -13,6 +13,13 @@
     <uses-feature android:name="android.hardware.Camera.autofocus" />
     <uses-feature android:name="android.hardware.location.gps" />
 
+    <supports-screens
+        android:anyDensity="true"
+        android:largeScreens="true"
+        android:normalScreens="true"
+        android:smallScreens="true"
+        android:xlargeScreens="true" />
+
     <application
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"

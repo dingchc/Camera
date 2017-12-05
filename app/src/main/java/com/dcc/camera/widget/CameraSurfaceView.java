@@ -194,6 +194,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
             parameters.setPreviewSize(sizeInfo.width, sizeInfo.height);
         }
 
+        // 相机设定参数
         mCamera.setParameters(parameters);
     }
 

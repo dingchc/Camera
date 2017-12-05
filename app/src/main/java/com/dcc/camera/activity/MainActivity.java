@@ -1,5 +1,6 @@
 package com.dcc.camera.activity;
 
+import android.app.AppOpsManager;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -25,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-
+//        AppOpsManager
 
         mBtnCameraCapture = findViewById(R.id.btn_camera_capture);
         mBtnCameraRecord = findViewById(R.id.btn_camera_record);

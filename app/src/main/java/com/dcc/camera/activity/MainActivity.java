@@ -2,7 +2,10 @@ package com.dcc.camera.activity;
 
 import android.app.AppOpsManager;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -13,7 +16,9 @@ import android.view.MenuItem;
 import android.widget.Button;
 
 import com.dcc.camera.R;
+import com.dcc.camera.util.AppLogger;
 import com.dcc.camera.util.Constant;
+import com.dcc.camera.util.MPermissionUtil;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -67,6 +72,8 @@ public class MainActivity extends AppCompatActivity {
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
 
+                MPermissionUtil.checkPermission(MainActivity.this, MPermissionUtil.PermissionRequest.CAMERA);
+
             }
         });
     }
@@ -91,5 +98,115 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+
+        onPermissionsResult(requestCode, permissions, grantResults);
+    }
+
+    /**
+     * 处理权限请求的返回
+     *
+     * @param requestCode  请求code
+     * @param permissions  权限（暂时保留）
+     * @param grantResults 权限结果
+     */
+    public void onPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+
+        AppLogger.i(AppLogger.TAG, "requestCode=" + requestCode);
+
+        // 拍照
+        if (requestCode == MPermissionUtil.PermissionRequest.CAMERA.getRequestCode()) {
+
+            // 授权失败
+            if (!MPermissionUtil.hasAllPermissionsGranted(grantResults)) {
+
+                return;
+            }
+        }
+        // 录音
+        else if (requestCode == MPermissionUtil.PermissionRequest.AUDIO_RECORD.getRequestCode()) {
+
+            // 授权失败
+            if (!MPermissionUtil.hasAllPermissionsGranted(grantResults)) {
+
+                return;
+            }
+        }
+        // 电话
+        else if (requestCode == MPermissionUtil.PermissionRequest.PHONE.getRequestCode()) {
+            // 授权失败
+            if (!MPermissionUtil.hasAllPermissionsGranted(grantResults)) {
+
+                return;
+            }
+        }
+        // 读写存储设备
+        else if (requestCode == MPermissionUtil.PermissionRequest.READ_WRITE_STORAGE.getRequestCode()) {
+            // 授权失败
+            if (!MPermissionUtil.hasAllPermissionsGranted(grantResults)) {
+                return;
+            }
+        }
+        // 读短信
+        else if (requestCode == MPermissionUtil.PermissionRequest.READ_SMS.getRequestCode()) {
+            // 授权失败
+            if (!MPermissionUtil.hasAllPermissionsGranted(grantResults)) {
+                return;
+            }
+        }
+        // 视频
+        else if (requestCode == MPermissionUtil.PermissionRequest.VIDEO.getRequestCode()) {
+            // 授权失败
+            if (!MPermissionUtil.hasAllPermissionsGranted(grantResults)) {
+
+                return;
+            }
+        }
+        // 位置
+        else if (requestCode == MPermissionUtil.PermissionRequest.LOCATION.getRequestCode()) {
+            // 授权失败
+            if (!MPermissionUtil.hasAllPermissionsGranted(grantResults)) {
+
+                return;
+            }
+        }
+        // 保存图片
+        else if (requestCode == MPermissionUtil.PermissionRequest.SAVE_IMAGE.getRequestCode()) {
+
+            // 授权失败
+            if (!MPermissionUtil.hasAllPermissionsGranted(grantResults)) {
+                return;
+            }
+        }
+
+        // 到最后，代表权限已获得
+        onPermissionGranted(requestCode);
+    }
+
+    /**
+     * 权限获得
+     *
+     * @param requestCode 请求code
+     */
+    protected void onPermissionGranted(int requestCode) {
+
+        // 拍照
+        if (requestCode == MPermissionUtil.PermissionRequest.CAMERA.getRequestCode()) {
+            AppLogger.i("CAMERA");
+        }
+        // 相册
+        else if (requestCode == MPermissionUtil.PermissionRequest.READ_WRITE_STORAGE.getRequestCode()) {
+            AppLogger.i("READ_WRITE_STORAGE");
+        }
+        // 保存图片-读写权限
+        else if (requestCode == MPermissionUtil.PermissionRequest.SAVE_IMAGE.getRequestCode()) {
+
+            AppLogger.i("SAVE_IMAGE");
+        }
+
+
     }
 }

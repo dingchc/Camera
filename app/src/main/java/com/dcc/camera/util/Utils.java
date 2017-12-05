@@ -1,5 +1,6 @@
 package com.dcc.camera.util;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Environment;
@@ -117,5 +118,15 @@ public class Utils {
      */
     public static String getVideoPath() {
         return getOutputFilePath(2);
+    }
+
+    public static String getPackageName(Context context) {
+
+        String packageName = "";
+
+        if (context != null) {
+            packageName = context.getPackageName();
+        }
+        return packageName;
     }
 }

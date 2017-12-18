@@ -295,13 +295,6 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 
         AppLogger.i("format=" + format + ", width =" + width + ", height=" + height);
 
-//        // 设置相机方向
-//        setCameraDisplayOrientation((Activity) mContext, cameraId, mCamera);
-//
-//        stopPreview();
-//
-//        startPreview();
-
     }
 
     @Override

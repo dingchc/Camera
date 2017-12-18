@@ -3,6 +3,7 @@ package com.dcc.camera.activity;
 import android.app.AppOpsManager;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
@@ -31,8 +32,6 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-//        AppOpsManager
-
         mBtnCameraCapture = findViewById(R.id.btn_camera_capture);
         mBtnCameraRecord = findViewById(R.id.btn_camera_record);
 
@@ -48,9 +47,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                Intent intent = new Intent(MainActivity.this, PreviewActivity.class);
-                intent.putExtra(Constant.KEY_OPERATE, Constant.KEY_OPERATE_CAPTURE);
-                startActivity(intent);
+                if (!MPermissionUtil.checkPermission(MainActivity.this, MPermissionUtil.PermissionRequest.CAMERA)) {
+                    return;
+                }
+
+                gotoCapture();
+
             }
         });
 
@@ -58,9 +60,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                Intent intent = new Intent(MainActivity.this, PreviewActivity.class);
-                intent.putExtra(Constant.KEY_OPERATE, Constant.KEY_OPERATE_RECORD);
-                startActivity(intent);
+                if (!MPermissionUtil.checkPermission(MainActivity.this, MPermissionUtil.PermissionRequest.VIDEO)) {
+                    return;
+                }
+
+                gotoRecord();
 
             }
         });
@@ -196,6 +200,8 @@ public class MainActivity extends AppCompatActivity {
         // 拍照
         if (requestCode == MPermissionUtil.PermissionRequest.CAMERA.getRequestCode()) {
             AppLogger.i("CAMERA");
+
+            gotoCapture();
         }
         // 相册
         else if (requestCode == MPermissionUtil.PermissionRequest.READ_WRITE_STORAGE.getRequestCode()) {
@@ -207,6 +213,25 @@ public class MainActivity extends AppCompatActivity {
             AppLogger.i("SAVE_IMAGE");
         }
 
+    }
 
+    private void gotoCapture() {
+
+        Intent intent;
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            intent = new Intent(MainActivity.this, PreviewActivity.class);
+        } else {
+            intent = new Intent(MainActivity.this, Preview2Activity.class);
+        }
+        intent.putExtra(Constant.KEY_OPERATE, Constant.KEY_OPERATE_CAPTURE);
+        startActivity(intent);
+    }
+
+    private void gotoRecord() {
+
+        Intent intent = new Intent(MainActivity.this, PreviewActivity.class);
+        intent.putExtra(Constant.KEY_OPERATE, Constant.KEY_OPERATE_RECORD);
+        startActivity(intent);
     }
 }

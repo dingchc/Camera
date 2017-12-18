@@ -80,10 +80,6 @@ public class MPermissionUtil {
 
         boolean ret;
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            return isOpsGranted(permissionRequest);
-        }
-
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || permissionRequest == null || context == null) {
 
             AppLogger.i(AppLogger.TAG, "permission don't check");
@@ -100,6 +96,8 @@ public class MPermissionUtil {
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 ret = isOpsGranted(permissionRequest);
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                return isOpsGranted(permissionRequest);
             } else {
                 ret = true;
                 AppLogger.i(AppLogger.TAG, "permission granted");
@@ -255,6 +253,7 @@ public class MPermissionUtil {
 
     /**
      * 获取AppOps的code
+     *
      * @param permission 权限名称
      * @return AppOps的code
      */
@@ -285,6 +284,7 @@ public class MPermissionUtil {
 
     /**
      * 获取AppOps的code
+     *
      * @param permission 权限名称
      * @return AppOps的code
      */
